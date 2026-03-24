@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Now Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  
+  --color-app-bg-light: #FAFAFA;
+  --color-app-bg-dark: #0A0A0A;
+  --color-app-surface-light: #FFFFFF;
+  --color-app-surface-dark: #141414;
+  --color-app-border-light: #E8E8E8;
+  --color-app-border-dark: #1E1E1E;
+  --color-app-text-primary-light: #1D1D1F;
+  --color-app-text-primary-dark: #F5F5F7;
+  --color-app-text-secondary-light: #6E6E73;
+  --color-app-text-secondary-dark: #86868B;
+  --color-app-accent: #0071E3;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-app-bg-light)] text-[var(--color-app-text-primary-light)] font-sans antialiased selection:bg-[var(--color-app-accent)] selection:text-white transition-colors duration-300;
+  }
+  
+  .dark body {
+    @apply bg-[var(--color-app-bg-dark)] text-[var(--color-app-text-primary-dark)];
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+}
+
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-black/10 dark:bg-white/10 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-black/20 dark:bg-white/20;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply bg-white/70 dark:bg-black/70 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-sm;
+}
+
+.glass-panel {
+  @apply bg-white/50 dark:bg-black/50 backdrop-blur-md border border-black/5 dark:border-white/10 shadow-sm;
+}
+
+/* Hide scrollbar for horizontal scrolling areas */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Lenis smooth scrolling */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
