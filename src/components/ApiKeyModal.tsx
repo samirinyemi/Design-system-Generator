@@ -39,8 +39,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
     }
   };
 
-  const hasKey = !!localStorage.getItem('CUSTOM_GEMINI_API_KEY');
-  const canClose = !FORCE_BYOK || hasKey;
+  const canClose = true;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

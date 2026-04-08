@@ -20,16 +20,6 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false); // App chrome theme
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Check if API key is missing and FORCE_BYOK is true
-  useEffect(() => {
-    if (FORCE_BYOK) {
-      const customKey = localStorage.getItem('CUSTOM_GEMINI_API_KEY');
-      if (!customKey) {
-        setIsSettingsOpen(true);
-      }
-    }
-  }, []);
-
   // Toggle app chrome theme based on system preference or manual toggle
   useEffect(() => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
