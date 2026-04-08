@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ brandName, onReset, isDarkMode, toggleAppTheme, onOpenSettings }) => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 glass-panel border-b border-black/5 dark:border-white/5 transition-all duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-black/5 dark:border-white/5 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-3 cursor-pointer" onClick={onReset}>
           <div className="w-8 h-8 rounded-lg bg-black dark:bg-white flex items-center justify-center shadow-sm">
@@ -35,13 +35,6 @@ export const Header: React.FC<HeaderProps> = ({ brandName, onReset, isDarkMode, 
               aria-label="Toggle theme"
             >
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <button 
-              onClick={onOpenSettings}
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              aria-label="API Settings"
-            >
-              <Settings className="w-5 h-5" />
             </button>
           </div>
 

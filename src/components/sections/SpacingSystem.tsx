@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { DesignSystem, SpacingScale } from '../../types';
 import { getAccessibleColor } from '../../utils/accessibility';
 import { ValueUnitInput } from '../ui/ValueUnitInput';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface SpacingSystemProps {
   system: DesignSystem;
@@ -42,8 +43,11 @@ export const SpacingSystem: React.FC<SpacingSystemProps> = ({ system, activeThem
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const headerColor = getAccessibleColor(theme.textPrimary, theme.background);
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
+
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
 
   const handleScaleChange = (index: number, field: keyof SpacingScale, value: string) => {
     setDesignSystem(prev => {
@@ -82,7 +86,7 @@ export const SpacingSystem: React.FC<SpacingSystemProps> = ({ system, activeThem
         Spacing Scale
       </h3>
 
-      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border flex-grow" style={{ borderColor: theme.borderSubtle, background: theme.surface }}>
+      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border flex-grow" style={{ border: `1px solid ${theme.borderSubtle}`, background: theme.surface, ...panelStyleModifiers }}>
         <div className="flex justify-between items-center mb-8 pb-4 border-b" style={{ borderColor: theme.borderSubtle }}>
           <span className="text-sm font-medium uppercase tracking-wider" style={{ color: subHeaderColor }}>Base Unit</span>
           <div className="w-32">

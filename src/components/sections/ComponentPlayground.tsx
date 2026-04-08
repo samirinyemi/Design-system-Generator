@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DesignSystem } from '../../types';
 import { Settings2, Code2, BookOpen, Accessibility } from 'lucide-react';
 import { getAccessibleColor } from '../../utils/accessibility';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface ComponentPlaygroundProps {
   system: DesignSystem;
@@ -12,6 +13,7 @@ type ComponentType = 'button' | 'input' | 'card' | 'badge' | 'avatar' | 'alert' 
 
 export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system, activeTheme }) => {
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const [activeComponent, setActiveComponent] = useState<ComponentType>('button');
   
   // Interactive states
@@ -77,6 +79,7 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
 
     const padding = buttonSize === 'sm' ? '0.5rem 1rem' : buttonSize === 'lg' ? '1rem 2rem' : '0.75rem 1.5rem';
     const fontSize = buttonSize === 'sm' ? '0.875rem' : buttonSize === 'lg' ? '1.125rem' : '1rem';
+    const styleModifiers = getStyleModifiers(designStyle, theme, 'button', false);
 
     return (
       <button
@@ -91,7 +94,8 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
           fontWeight: 500,
           cursor: 'pointer',
           transition: 'all 0.2s ease',
-          boxShadow: getShadow('sm')
+          boxShadow: getShadow('sm'),
+          ...styleModifiers
         }}
         className="hover:opacity-90 active:scale-95"
       >
@@ -114,6 +118,7 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
 
     const labelColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
     const inputTextColor = getAccessibleColor(theme.textPrimary, theme.surface);
+    const styleModifiers = getStyleModifiers(designStyle, theme, 'input', false);
 
     return (
       <div className="w-full max-w-sm flex flex-col gap-1.5">
@@ -131,7 +136,8 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
             fontSize: '1rem',
             outline: 'none',
             boxShadow: inputState !== 'default' ? `0 0 0 3px ${ringColor}` : 'none',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            ...styleModifiers
           }}
         />
         {inputState === 'error' && (
@@ -146,6 +152,8 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
   const renderCardPreview = () => {
     const cardTextColor = getAccessibleColor(theme.textSecondary, theme.surface, '#E5E7EB', '#4B5563');
     const cardHeaderColor = getAccessibleColor(theme.textPrimary, theme.surface);
+    const styleModifiers = getStyleModifiers(designStyle, theme, 'card', false);
+    const buttonStyleModifiers = getStyleModifiers(designStyle, theme, 'button', false);
 
     return (
       <div
@@ -157,7 +165,8 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
           border: `1px solid ${theme.borderSubtle}`,
           maxWidth: '400px',
           width: '100%',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          ...styleModifiers
         }}
       >
         <h3 style={{ color: cardHeaderColor, fontFamily: getFont('display'), fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
@@ -177,7 +186,8 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
               fontFamily: getFont('body'),
               fontWeight: 500,
               border: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              ...buttonStyleModifiers
             }}
           >
             Action
@@ -192,7 +202,8 @@ export const ComponentPlayground: React.FC<ComponentPlaygroundProps> = ({ system
               fontFamily: getFont('body'),
               fontWeight: 500,
               border: `1px solid ${theme.border}`,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              ...buttonStyleModifiers
             }}
           >
             Cancel

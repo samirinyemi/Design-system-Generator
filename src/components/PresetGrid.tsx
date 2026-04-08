@@ -76,7 +76,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({ onSelect }) => {
                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
             }`}
           >
-            Custom ({customSystems.length})
+            My System
           </button>
         </div>
         

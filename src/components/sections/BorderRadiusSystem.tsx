@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { DesignSystem, BorderRadiusScale } from '../../types';
 import { getAccessibleColor } from '../../utils/accessibility';
 import { ValueUnitInput } from '../ui/ValueUnitInput';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface BorderRadiusSystemProps {
   system: DesignSystem;
@@ -42,8 +43,11 @@ export const BorderRadiusSystem: React.FC<BorderRadiusSystemProps> = ({ system, 
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const headerColor = getAccessibleColor(theme.textPrimary, theme.background);
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
+
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
 
   const handleScaleChange = (index: number, field: keyof BorderRadiusScale, value: string) => {
     setDesignSystem(prev => {
@@ -69,7 +73,7 @@ export const BorderRadiusSystem: React.FC<BorderRadiusSystemProps> = ({ system, 
         Border Radius
       </h3>
 
-      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border flex-grow" style={{ borderColor: theme.borderSubtle, background: theme.surface }}>
+      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border flex-grow" style={{ border: `1px solid ${theme.borderSubtle}`, background: theme.surface, ...panelStyleModifiers }}>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
           {(system.borderRadius?.scale || []).map((scale, idx) => (
             <div key={idx} className="flex flex-col items-center text-center group">

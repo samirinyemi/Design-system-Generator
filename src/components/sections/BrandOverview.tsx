@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { DesignSystem } from '../../types';
 import { getAccessibleColor } from '../../utils/accessibility';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface BrandOverviewProps {
   system: DesignSystem;
@@ -33,8 +34,11 @@ export const BrandOverview: React.FC<BrandOverviewProps> = ({ system, activeThem
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const textColor = getAccessibleColor(theme.textPrimary, theme.surface);
   const secondaryTextColor = getAccessibleColor(theme.textSecondary, theme.surface, '#E5E7EB', '#4B5563');
+
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
 
   return (
     <section ref={sectionRef} className="w-full">
@@ -44,6 +48,7 @@ export const BrandOverview: React.FC<BrandOverviewProps> = ({ system, activeThem
           background: theme.surface,
           color: textColor,
           borderColor: theme.border,
+          ...panelStyleModifiers
         }}
       >
         <h2 

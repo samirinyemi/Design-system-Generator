@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { DesignSystem } from '../../types';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 import { 
   Search, Bell, User, Heart, Star, Check, X, ArrowRight, ChevronDown, 
   Calendar, Clock, Settings, Mail, Phone, MapPin, Link, Image as ImageIcon,
@@ -47,6 +48,7 @@ export const ComponentPreviews: React.FC<ComponentPreviewsProps> = ({ system, ac
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
 
   const getRadius = (name: string) => {
     const scale = system.borderRadius?.scale?.find(s => s.name === name);
@@ -65,12 +67,18 @@ export const ComponentPreviews: React.FC<ComponentPreviewsProps> = ({ system, ac
   };
 
   // Helper to generate a consistent hover animation style
-  const getHoverStyle = (id: string, baseStyle: React.CSSProperties) => {
+  const getHoverStyle = (id: string, baseStyle: React.CSSProperties, type: 'panel' | 'button' | 'input' | 'card' = 'button') => {
     const isHovered = hoveredId === id;
+    const styleModifiers = getStyleModifiers(designStyle, theme, type, isHovered);
+    
     return {
       ...baseStyle,
-      transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)',
-      boxShadow: isHovered ? getShadow('lg') : baseStyle.boxShadow || getShadow('sm'),
+      ...styleModifiers,
+      transform: isHovered && designStyle !== 'brutalism' ? 'translateY(-4px) scale(1.02)' : 
+                 isHovered && designStyle === 'brutalism' ? 'translateY(2px) translateX(2px)' : 'translateY(0) scale(1)',
+      boxShadow: isHovered && designStyle === 'brutalism' ? `2px 2px 0px ${theme.textPrimary}` :
+                 isHovered && designStyle !== 'claymorphism' ? getShadow('lg') : 
+                 styleModifiers.boxShadow || baseStyle.boxShadow || getShadow('sm'),
       transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
       cursor: 'pointer'
     };
@@ -432,7 +440,7 @@ export const ComponentPreviews: React.FC<ComponentPreviewsProps> = ({ system, ac
                 const color = colors[type as keyof typeof colors];
                 const Icon = type === 'success' ? Check : type === 'warning' ? AlertTriangle : type === 'error' ? X : Info;
                 return (
-                  <div key={type} onMouseEnter={() => setHoveredId(`alert-${type}`)} onMouseLeave={() => setHoveredId(null)} className="p-4 flex items-start gap-3" style={getHoverStyle(`alert-${type}`, { background: String(color).includes('gradient')  ? color  : (String(color).includes('gradient') ? color : color + '15'), borderLeft: `4px solid ${color}`, borderRadius: getRadius('md'), fontFamily: getFont('body') })}>
+                  <div key={type} onMouseEnter={() => setHoveredId(`alert-${type}`)} onMouseLeave={() => setHoveredId(null)} className="p-4 flex items-start gap-3" style={getHoverStyle(`alert-${type}`, { background: String(color).includes('gradient')  ? color  : (String(color).includes('gradient') ? color : color + '15'), border: `1px solid ${color}`, borderRadius: getRadius('md'), fontFamily: getFont('body') })}>
                     <Icon size={20} color={color} className="mt-0.5" />
                     <div>
                       <h6 className="font-medium text-sm" style={{ color: theme.textPrimary }}>{type.charAt(0).toUpperCase() + type.slice(1)} Message</h6>

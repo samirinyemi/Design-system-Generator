@@ -45,7 +45,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {toast && (
-        <div className="toast-notification fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+        <div className="toast-notification fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[100] pointer-events-none">
           <div className="glass px-6 py-3 rounded-full shadow-lg flex items-center space-x-2 text-sm font-medium">
             <span className="w-2 h-2 rounded-full bg-green-500"></span>
             <span>{toast.message}</span>

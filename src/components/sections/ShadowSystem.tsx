@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { DesignSystem, ShadowScale } from '../../types';
 import { getAccessibleColor } from '../../utils/accessibility';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface ShadowSystemProps {
   system: DesignSystem;
@@ -34,8 +35,11 @@ export const ShadowSystem: React.FC<ShadowSystemProps> = ({ system, activeTheme,
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const headerColor = getAccessibleColor(theme.textPrimary, theme.background);
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
+
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
 
   const handleScaleChange = (index: number, field: keyof ShadowScale, value: string) => {
     setDesignSystem(prev => {
@@ -61,7 +65,7 @@ export const ShadowSystem: React.FC<ShadowSystemProps> = ({ system, activeTheme,
         Elevation & Shadows
       </h3>
 
-      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border" style={{ borderColor: theme.borderSubtle, background: theme.surface }}>
+      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border" style={{ border: `1px solid ${theme.borderSubtle}`, background: theme.surface, ...panelStyleModifiers }}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {(system.shadows?.scale || []).map((scale, idx) => (
             <div 

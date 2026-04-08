@@ -43,7 +43,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
   const canClose = !FORCE_BYOK || hasKey;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-white/10">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/10">
           <h2 className="text-lg font-medium flex items-center gap-2 text-gray-900 dark:text-white">
@@ -59,10 +59,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
         <div className="p-6 flex flex-col gap-4">
           <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm leading-relaxed border border-blue-100 dark:border-blue-800/30">
             <p className="font-semibold mb-1">🔒 Your Privacy is Guaranteed</p>
-            <p>
+            <p className="mb-2">
               {FORCE_BYOK 
                 ? "This application requires a free Gemini API key to function. For your absolute security, your key is stored exclusively in your browser's local memory. It is never sent to any backend server, and nobody—not even the creator of this app—can see, access, or use your key. It communicates directly with Google."
                 : "Enter your own Gemini API key to use your own quota. For your absolute security, your key is stored exclusively in your browser's local memory. It is never sent to any backend server, and nobody—not even the creator of this app—can see, access, or use your key."}
+            </p>
+            <p className="font-medium">
+              ✨ You only need to do this once! Your key will be securely saved for future visits.
             </p>
           </div>
           <div className="flex flex-col gap-2">

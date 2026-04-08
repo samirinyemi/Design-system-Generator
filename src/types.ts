@@ -75,6 +75,7 @@ export interface DesignSystem {
   brandName: string;
   brandTagline: string;
   personality: string[];
+  designStyle?: 'flat' | 'glassmorphism' | 'brutalism' | 'claymorphism';
   colors: {
     primary: SemanticColor;
     secondary: SemanticColor;

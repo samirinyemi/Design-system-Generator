@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowRight, Palette } from 'lucide-react';
+import { ArrowRight, Palette, Key } from 'lucide-react';
 import { generateDesignSystemFromScratch, ScratchConfig } from '../services/geminiService';
 import { DesignSystem } from '../types';
 import ColorPicker from 'react-best-gradient-color-picker';
@@ -175,7 +175,7 @@ export const CreateFromScratch: React.FC<CreateFromScratchProps> = ({ onGenerate
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full relative z-50 bg-white dark:bg-[#1A1A1A] rounded-[2rem] shadow-sm border border-gray-200 dark:border-white/10 transition-all duration-300 p-6 md:p-8">
+    <form onSubmit={handleSubmit} className="w-full relative z-20 bg-white dark:bg-[#1A1A1A] rounded-[2rem] shadow-sm border border-gray-200 dark:border-white/10 transition-all duration-300 p-6 md:p-8">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex flex-col gap-2 text-left flex-1">
@@ -220,8 +220,17 @@ export const CreateFromScratch: React.FC<CreateFromScratchProps> = ({ onGenerate
 
       <div className="mt-8 flex items-center justify-between">
         {error ? <span className="text-red-500 text-sm">{error}</span> : <div></div>}
-        <button
-          type="submit"
+        <div className="flex items-center space-x-4">
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400"
+            title="API Settings"
+          >
+            <Key className="w-5 h-5" />
+          </button>
+          <button
+            type="submit"
           disabled={isGenerating}
           className={`flex items-center space-x-2 px-6 py-3 rounded-full font-medium transition-all duration-300 ${
             isGenerating
@@ -241,6 +250,7 @@ export const CreateFromScratch: React.FC<CreateFromScratchProps> = ({ onGenerate
             </>
           )}
         </button>
+        </div>
       </div>
     </form>
   );

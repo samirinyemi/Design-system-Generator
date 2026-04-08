@@ -53,6 +53,7 @@ const designSystemSchema = {
     brandName: { type: Type.STRING },
     brandTagline: { type: Type.STRING },
     personality: { type: Type.ARRAY, items: { type: Type.STRING } },
+    designStyle: { type: Type.STRING, description: "The visual style of the design system. Must be one of: 'flat', 'glassmorphism', 'brutalism', 'claymorphism'." },
     colors: {
       type: Type.OBJECT,
       properties: {
@@ -120,7 +121,7 @@ const designSystemSchema = {
       required: ['light', 'dark']
     },
   },
-  required: ['brandName', 'brandTagline', 'personality', 'colors', 'typography', 'spacing', 'borderRadius', 'shadows', 'iconStyle', 'themes']
+  required: ['brandName', 'brandTagline', 'personality', 'designStyle', 'colors', 'typography', 'spacing', 'borderRadius', 'shadows', 'iconStyle', 'themes']
 };
 
 export async function generateDesignSystem(prompt: string): Promise<DesignSystem> {
@@ -131,6 +132,7 @@ export async function generateDesignSystem(prompt: string): Promise<DesignSystem
     
     Make sure the AI generates sophisticated, harmonious colors — no generic primaries. 
     Font choices should come from Google Fonts and be distinctive, not generic (never suggest Inter, Roboto, or Arial). 
+    Determine an appropriate designStyle ('flat', 'glassmorphism', 'brutalism', or 'claymorphism') that fits the brand description.
     Everything should feel cohesive as a system.
     
     Return ONLY valid JSON matching the schema.`,
@@ -219,6 +221,7 @@ export async function generateDesignSystemFromScratch(config: ScratchConfig): Pr
     5. Generate appropriate shades for the primaryScale and neutrals based on these colors. If a color is a gradient, try to extract its main hue to generate shades, or use a neutral scale.
     6. Select appropriate Google Fonts that match the vibe of these colors.
     7. Generate spacing, border radius, and shadow scales.
+    8. Determine an appropriate designStyle ('flat', 'glassmorphism', 'brutalism', or 'claymorphism').
     
     Return ONLY valid JSON matching the schema.`,
     config: {

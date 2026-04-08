@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { ArrowRight, Type, Palette } from 'lucide-react';
+import { ArrowRight, Type, Palette, Key } from 'lucide-react';
 import { generateDesignSystem } from '../services/geminiService';
 import { DesignSystem } from '../types';
 import { PresetGrid } from './PresetGrid';
@@ -134,7 +134,7 @@ export const Hero: React.FC<HeroProps> = ({ onGenerate, isGenerating, setIsGener
 
   return (
     <div className="w-full flex flex-col items-center justify-center text-center mt-20 md:mt-32">
-      <div ref={heroRef} className="w-full max-w-3xl mx-auto flex flex-col items-center relative z-50">
+      <div ref={heroRef} className="w-full max-w-3xl mx-auto flex flex-col items-center relative z-20">
         <h1 className="text-5xl md:text-7xl font-serif font-medium tracking-tight mb-6 leading-tight text-gray-900 dark:text-white">
           Design Systems, instantly.
         </h1>
@@ -167,7 +167,7 @@ export const Hero: React.FC<HeroProps> = ({ onGenerate, isGenerating, setIsGener
           </button>
         </div>
 
-        <div ref={contentRef} className="w-full relative z-50">
+        <div ref={contentRef} className="w-full relative z-20">
           {displayMode === 'describe' ? (
             <>
               <form onSubmit={handleGenerate} className="w-full relative group mt-4">
@@ -185,6 +185,14 @@ export const Hero: React.FC<HeroProps> = ({ onGenerate, isGenerating, setIsGener
                   
                   <div className="absolute bottom-4 right-4 flex items-center space-x-4">
                     {error && <span className="text-red-500 text-sm">{error}</span>}
+                    <button
+                      type="button"
+                      onClick={onOpenSettings}
+                      className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400"
+                      title="API Settings"
+                    >
+                      <Key className="w-5 h-5" />
+                    </button>
                     <button
                       type="submit"
                       disabled={!prompt.trim() || isGenerating}

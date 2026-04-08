@@ -4,6 +4,7 @@ import { DesignSystem } from '../../types';
 import { getAccessibleColor } from '../../utils/accessibility';
 import { TypeScaleEditor } from './TypeScaleEditor';
 import { FontDropdown } from './FontDropdown';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface TypographySystemProps {
   system: DesignSystem;
@@ -45,8 +46,12 @@ export const TypographySystem: React.FC<TypographySystemProps> = ({ system, acti
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const headerColor = getAccessibleColor(theme.textPrimary, theme.background);
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
+
+  const inputStyleModifiers = getStyleModifiers(designStyle, theme, 'input', false);
+  const buttonStyleModifiers = getStyleModifiers(designStyle, theme, 'button', false);
 
   const handleWeightChange = (type: 'displayFont' | 'bodyFont', weight: number) => {
     setDesignSystem(prev => {
@@ -142,10 +147,11 @@ export const TypographySystem: React.FC<TypographySystemProps> = ({ system, acti
               background: theme.surface, 
               borderColor: theme.borderSubtle, 
               color: theme.textPrimary,
-              outlineColor: theme.primary
+              outlineColor: theme.primary,
+              ...inputStyleModifiers
             }}
           />
-          <label className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center whitespace-nowrap" style={{ background: theme.primary, color: theme.primaryForeground }}>
+          <label className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center whitespace-nowrap" style={{ background: theme.primary, color: theme.primaryForeground, ...buttonStyleModifiers }}>
             Upload Custom Font
             <input type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={handleCustomFontUpload} />
           </label>
@@ -189,11 +195,13 @@ export const TypographySystem: React.FC<TypographySystemProps> = ({ system, acti
 const FontCard = ({ font, label, sample, theme, onWeightChange, onFontChange, customFonts, previewText }: any) => {
   const currentWeight = font.selectedWeight || font.weights?.[0] || 400;
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.surfaceSecondary, '#D1D5DB', '#4B5563');
+  const designStyle = theme.designStyle || 'flat';
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
 
   return (
     <div 
       className="rounded-3xl p-8 shadow-sm border flex flex-col justify-between"
-      style={{ background: theme.surfaceSecondary, borderColor: theme.borderSubtle }}
+      style={{ background: theme.surfaceSecondary, border: `1px solid ${theme.borderSubtle}`, ...panelStyleModifiers }}
     >
       <div className="flex justify-between items-start mb-8">
         <div className="flex flex-col w-full max-w-[200px]">
@@ -212,7 +220,7 @@ const FontCard = ({ font, label, sample, theme, onWeightChange, onFontChange, cu
         </div>
         <div 
           className="text-6xl md:text-8xl leading-none flex-shrink-0"
-          style={{ fontFamily: `"${font.name}", ${font.category === 'serif' ? 'serif' : 'sans-serif'}`, color: theme.primary, fontWeight: currentWeight }}
+          style={{ fontFamily: `"${font.name}", ${font.category === 'serif' ? 'serif' : 'sans-serif'}`, color: theme.textPrimary, fontWeight: currentWeight }}
         >
           {sample}
         </div>

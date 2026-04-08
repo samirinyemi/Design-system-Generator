@@ -4,6 +4,7 @@ import { DesignSystem, IconStyle } from '../../types';
 import * as LucideIcons from 'lucide-react';
 import { getAccessibleColor } from '../../utils/accessibility';
 import { Plus, X } from 'lucide-react';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface IconSystemProps {
   system: DesignSystem;
@@ -36,8 +37,13 @@ export const IconSystem: React.FC<IconSystemProps> = ({ system, activeTheme, set
   }, []);
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const headerColor = getAccessibleColor(theme.textPrimary, theme.background);
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
+
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
+  const inputStyleModifiers = getStyleModifiers(designStyle, theme, 'input', false);
+  const buttonStyleModifiers = getStyleModifiers(designStyle, theme, 'button', false);
 
   const [customIcons, setCustomIcons] = useState<string[]>([]);
   const [customSvgIcons, setCustomSvgIcons] = useState<{ name: string, svg: string }[]>([]);
@@ -157,7 +163,7 @@ export const IconSystem: React.FC<IconSystemProps> = ({ system, activeTheme, set
         Iconography
       </h3>
 
-      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border" style={{ borderColor: theme.borderSubtle, background: theme.surface }}>
+      <div className="glass-panel rounded-3xl p-8 md:p-12 shadow-sm border" style={{ border: `1px solid ${theme.borderSubtle}`, background: theme.surface, ...panelStyleModifiers }}>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 pb-8 border-b" style={{ borderColor: theme.borderSubtle }}>
           <div className="mb-6 md:mb-0 flex flex-col gap-2">
             <input 
@@ -299,14 +305,15 @@ export const IconSystem: React.FC<IconSystemProps> = ({ system, activeTheme, set
                       background: theme.surfaceSecondary, 
                       borderColor: theme.borderSubtle,
                       color: theme.textPrimary,
-                      '--tw-ring-color': theme.primary
+                      '--tw-ring-color': theme.primary,
+                      ...inputStyleModifiers
                     } as any}
                   />
                 </div>
                 <button 
                   type="submit"
                   className="px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-opacity hover:opacity-90 whitespace-nowrap"
-                  style={{ background: theme.primary, color: getAccessibleColor(theme.primary, theme.primary, '#FFFFFF', '#000000') }}
+                  style={{ background: theme.primary, color: getAccessibleColor(theme.primary, theme.primary, '#FFFFFF', '#000000'), ...buttonStyleModifiers }}
                 >
                   <Plus size={16} />
                   Add Icon
@@ -333,7 +340,8 @@ export const IconSystem: React.FC<IconSystemProps> = ({ system, activeTheme, set
                   style={{ 
                     background: theme.surfaceSecondary, 
                     color: theme.textPrimary,
-                    border: `1px solid ${theme.borderSubtle}`
+                    border: `1px solid ${theme.borderSubtle}`,
+                    ...buttonStyleModifiers
                   }}
                 >
                   <Plus size={16} />

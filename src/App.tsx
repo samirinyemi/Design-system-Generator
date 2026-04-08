@@ -126,7 +126,7 @@ export default function App() {
           </main>
 
           <footer className="w-full py-8 text-center text-sm text-[var(--color-app-text-secondary-light)] dark:text-[var(--color-app-text-secondary-dark)]">
-            <p>Built with AI ✦ Day 1 of 30</p>
+            <p>Built with love ✦ By Soni labs</p>
             <p className="text-xs mt-1 opacity-70">Design System AI — Generate, Preview, Export</p>
           </footer>
           <ApiKeyModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

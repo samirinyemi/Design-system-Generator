@@ -5,6 +5,7 @@ import { useToast } from '../Toast';
 import { getAccessibleColor } from '../../utils/accessibility';
 import { ColorInput } from '../ui/ColorInput';
 import ColorPicker from 'react-best-gradient-color-picker';
+import { getStyleModifiers } from '../../utils/designStyleUtils';
 
 interface ColorSystemProps {
   system: DesignSystem;
@@ -79,10 +80,21 @@ export const ColorSystem: React.FC<ColorSystemProps> = ({ system, activeTheme, s
       if (!prev) return prev;
       
       const updatedThemes = { ...prev.themes };
-      updatedThemes[activeTheme] = {
-        ...updatedThemes[activeTheme],
-        [key]: newHex
-      };
+      const themeToUpdate = { ...updatedThemes[activeTheme], [key]: newHex };
+
+      // Automatically update foreground colors for better contrast
+      if (key === 'primary' || key === 'secondary' || key === 'accent') {
+        const hex = newHex.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16) || 0;
+        const g = parseInt(hex.substr(2, 2), 16) || 0;
+        const b = parseInt(hex.substr(4, 2), 16) || 0;
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        const foregroundColor = (yiq >= 128) ? '#000000' : '#FFFFFF';
+        
+        themeToUpdate[`${key}Foreground`] = foregroundColor;
+      }
+
+      updatedThemes[activeTheme] = themeToUpdate;
 
       return {
         ...prev,
@@ -92,8 +104,11 @@ export const ColorSystem: React.FC<ColorSystemProps> = ({ system, activeTheme, s
   };
 
   const theme = system.themes[activeTheme];
+  const designStyle = system.designStyle || 'flat';
   const headerColor = getAccessibleColor(theme.textPrimary, theme.background);
   const subHeaderColor = getAccessibleColor(theme.textSecondary, theme.background, '#D1D5DB', '#4B5563');
+
+  const panelStyleModifiers = getStyleModifiers(designStyle, theme, 'panel', false);
 
   return (
     <section ref={sectionRef} className="w-full relative">
@@ -125,29 +140,29 @@ export const ColorSystem: React.FC<ColorSystemProps> = ({ system, activeTheme, s
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {system.colors?.primary && (
                 <ColorSwatch 
-                  color={system.colors.primary} 
+                  color={{ ...system.colors.primary, hex: theme.primary || system.colors.primary.hex }} 
                   label="Primary" 
                   onCopy={handleCopy} 
                   theme={theme}
-                  onChange={(hex: string) => handleColorChange('primary', hex)}
+                  onChange={(hex: string) => handleThemeColorChange('primary', hex)}
                 />
               )}
               {system.colors?.secondary && (
                 <ColorSwatch 
-                  color={system.colors.secondary} 
+                  color={{ ...system.colors.secondary, hex: theme.secondary || system.colors.secondary.hex }} 
                   label="Secondary" 
                   onCopy={handleCopy} 
                   theme={theme}
-                  onChange={(hex: string) => handleColorChange('secondary', hex)}
+                  onChange={(hex: string) => handleThemeColorChange('secondary', hex)}
                 />
               )}
               {system.colors?.accent && (
                 <ColorSwatch 
-                  color={system.colors.accent} 
+                  color={{ ...system.colors.accent, hex: theme.accent || system.colors.accent.hex }} 
                   label="Accent" 
                   onCopy={handleCopy} 
                   theme={theme}
-                  onChange={(hex: string) => handleColorChange('accent', hex)}
+                  onChange={(hex: string) => handleThemeColorChange('accent', hex)}
                 />
               )}
             </div>
@@ -157,7 +172,7 @@ export const ColorSystem: React.FC<ColorSystemProps> = ({ system, activeTheme, s
           {system.colors?.primaryScale?.length > 0 && (
             <div>
               <h4 className="text-xl font-medium mb-4" style={{ color: subHeaderColor }}>Primary Scale</h4>
-              <div className="flex w-full h-24 rounded-2xl overflow-hidden shadow-sm border" style={{ borderColor: theme.borderSubtle }}>
+              <div className="flex w-full h-24 rounded-2xl overflow-hidden shadow-sm border" style={{ border: `1px solid ${theme.borderSubtle}`, ...panelStyleModifiers }}>
                 {system.colors.primaryScale.map((shade, idx) => (
                   <ColorStrip 
                     key={idx} 
@@ -174,7 +189,7 @@ export const ColorSystem: React.FC<ColorSystemProps> = ({ system, activeTheme, s
           {system.colors?.neutrals?.length > 0 && (
             <div>
               <h4 className="text-xl font-medium mb-4" style={{ color: subHeaderColor }}>Neutral Scale</h4>
-              <div className="flex w-full h-24 rounded-2xl overflow-hidden shadow-sm border" style={{ borderColor: theme.borderSubtle }}>
+              <div className="flex w-full h-24 rounded-2xl overflow-hidden shadow-sm border" style={{ border: `1px solid ${theme.borderSubtle}`, ...panelStyleModifiers }}>
                 {system.colors.neutrals.map((shade, idx) => (
                   <ColorStrip 
                     key={idx} 
@@ -206,6 +221,8 @@ export const ColorSystem: React.FC<ColorSystemProps> = ({ system, activeTheme, s
 const ColorSwatch = ({ color, label, onCopy, theme, onChange }: any) => {
   const [showPicker, setShowPicker] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const designStyle = theme.designStyle || 'flat'; // Assuming theme might have it, or fallback
+  const styleModifiers = getStyleModifiers(designStyle, theme, 'card', false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -235,7 +252,7 @@ const ColorSwatch = ({ color, label, onCopy, theme, onChange }: any) => {
   return (
     <div 
       className={`flex flex-col rounded-3xl shadow-md group transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative ${showPicker ? 'z-50' : 'z-10'}`}
-      style={{ background: theme.surface, border: `1px solid ${theme.border}` }}
+      style={{ background: theme.surface, border: `1px solid ${theme.border}`, ...styleModifiers }}
     >
       <div 
         className="h-32 p-6 flex flex-col justify-between transition-colors duration-500 cursor-pointer rounded-t-3xl"
@@ -252,7 +269,7 @@ const ColorSwatch = ({ color, label, onCopy, theme, onChange }: any) => {
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
             </div>
             {showPicker && (
-              <div ref={popoverRef} className="absolute z-50 top-full right-0 mt-2 p-3 bg-white dark:bg-[#2A2A2A] rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 w-[300px] max-w-[90vw]">
+              <div ref={popoverRef} className="absolute z-50 top-full right-0 mt-2 p-0.5 bg-white dark:bg-[#2A2A2A] rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 w-[300px] max-w-[90vw] flex justify-center translate-x-1/2 -mr-3">
                 <ColorPicker value={color.hex} onChange={onChange} />
               </div>
             )}
@@ -300,6 +317,8 @@ const ColorStrip = ({ shade, hex, onCopy }: any) => {
 const SemanticSwatch = ({ color, label, onCopy, theme, onChange }: any) => {
   const [showPicker, setShowPicker] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const designStyle = theme.designStyle || 'flat';
+  const styleModifiers = getStyleModifiers(designStyle, theme, 'card', false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -317,7 +336,7 @@ const SemanticSwatch = ({ color, label, onCopy, theme, onChange }: any) => {
   return (
     <div 
       className={`flex items-center p-4 rounded-2xl group transition-all duration-300 hover:shadow-md relative ${showPicker ? 'z-50' : 'z-10'}`}
-      style={{ background: theme.surfaceSecondary, border: `1px solid ${theme.borderSubtle}` }}
+      style={{ background: theme.surfaceSecondary, border: `1px solid ${theme.borderSubtle}`, ...styleModifiers }}
     >
       <div 
         className="w-12 h-12 rounded-full shadow-sm mr-4 flex-shrink-0 group-hover:scale-110 transition-transform duration-300 cursor-pointer"
@@ -348,7 +367,7 @@ const SemanticSwatch = ({ color, label, onCopy, theme, onChange }: any) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
         </div>
         {showPicker && (
-          <div ref={popoverRef} className="absolute z-50 top-full right-0 mt-2 p-3 bg-white dark:bg-[#2A2A2A] rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 w-[300px] max-w-[90vw]">
+          <div ref={popoverRef} className="absolute z-50 top-full right-0 mt-2 p-0.5 bg-white dark:bg-[#2A2A2A] rounded-xl shadow-2xl border border-gray-200 dark:border-white/10 w-[300px] max-w-[90vw] flex justify-center translate-x-1/2 -mr-3">
             <ColorPicker value={color.hex} onChange={onChange} />
           </div>
         )}

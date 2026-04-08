@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, Code, FileJson, Image as ImageIcon, LayoutTemplate, FileText, Copy } from 'lucide-react';
 import { DesignSystem } from '../types';
 import * as htmlToImage from 'html-to-image';
@@ -13,10 +13,27 @@ interface ExportModalProps {
 export const ExportModal: React.FC<ExportModalProps> = ({ system, activeTheme, onClose }) => {
   const [exporting, setExporting] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>(Object.keys(system.themes || {}));
 
-  const handleExport = async (type: string) => {
+  useEffect(() => {
+    // Lock body scroll when modal is mounted
+    document.body.style.overflow = 'hidden';
+    return () => {
+      // Restore body scroll when modal is unmounted
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  const handleExport = async (type: string, action: 'download' | 'copy' = 'download') => {
     setExporting(type);
     setSuccess(null);
+
+    const filteredSystem = {
+      ...system,
+      themes: Object.fromEntries(
+        Object.entries(system.themes || {}).filter(([key]) => selectedThemes.includes(key))
+      )
+    };
 
     try {
       let content = '';
@@ -25,34 +42,34 @@ export const ExportModal: React.FC<ExportModalProps> = ({ system, activeTheme, o
 
       switch (type) {
         case 'markdown':
-          content = generateMarkdown(system, activeTheme);
+          content = generateMarkdown(filteredSystem, activeTheme);
           filename = `${(system.brandName || 'brand').toLowerCase().replace(/\s+/g, '-')}-ai-prompt.md`;
           mimeType = 'text/markdown';
           break;
         case 'figma':
-          content = JSON.stringify(generateFigmaTokens(system), null, 2);
+          content = JSON.stringify(generateFigmaTokens(filteredSystem), null, 2);
           filename = `${(system.brandName || 'brand').toLowerCase().replace(/\s+/g, '-')}-tokens.json`;
           mimeType = 'application/json';
           break;
         case 'figma-direct':
-          const svg = generateFigmaSVG(system);
+          const svg = generateFigmaSVG(filteredSystem);
           await navigator.clipboard.writeText(svg);
           setExporting(null);
-          setSuccess(type);
+          setSuccess(type + '-copy');
           setTimeout(() => setSuccess(null), 2000);
           return;
         case 'css':
-          content = generateCSSVariables(system);
+          content = generateCSSVariables(filteredSystem);
           filename = `${(system.brandName || 'brand').toLowerCase().replace(/\s+/g, '-')}-theme.css`;
           mimeType = 'text/css';
           break;
         case 'tailwind':
-          content = generateTailwindConfig(system);
+          content = generateTailwindConfig(filteredSystem);
           filename = 'tailwind.config.js';
           mimeType = 'application/javascript';
           break;
         case 'json':
-          content = JSON.stringify(system, null, 2);
+          content = JSON.stringify(filteredSystem, null, 2);
           filename = `${(system.brandName || 'brand').toLowerCase().replace(/\s+/g, '-')}-design-system.json`;
           mimeType = 'application/json';
           break;
@@ -64,7 +81,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ system, activeTheme, o
           return;
       }
 
-      if (content) {
+      if (action === 'copy') {
+        await navigator.clipboard.writeText(content);
+        setSuccess(type + '-copy');
+      } else if (content) {
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -74,9 +94,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ system, activeTheme, o
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        setSuccess(type);
       }
 
-      setSuccess(type);
       setTimeout(() => setSuccess(null), 2000);
     } catch (error) {
       console.error('Export failed:', error);
@@ -108,113 +128,164 @@ export const ExportModal: React.FC<ExportModalProps> = ({ system, activeTheme, o
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div 
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div 
-        className="glass-panel w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl p-8 shadow-2xl border border-black/10 dark:border-white/10"
+        className="glass-panel w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border border-black/10 dark:border-white/10"
         style={{ animation: 'scaleIn 0.3s ease-out forwards' }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center p-5 sm:p-6 pb-4 border-b border-black/5 dark:border-white/5 shrink-0">
           <div>
-            <h3 className="text-2xl font-semibold mb-1">Export Your Design System</h3>
+            <h3 className="text-xl font-semibold mb-1">Export Your Design System</h3>
             <p className="text-sm opacity-70">Choose your preferred format to download.</p>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0 ml-4"
           >
             <X size={24} />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <ExportCard 
-            icon={<Copy size={24} />}
-            title="Copy to Figma"
-            description="Copies an SVG of your design system. Just paste directly into Figma!"
-            onClick={() => handleExport('figma-direct')}
-            isExporting={exporting === 'figma-direct'}
-            isSuccess={success === 'figma-direct'}
-            actionText="Copy to Clipboard"
-          />
-          <ExportCard 
-            icon={<LayoutTemplate size={24} />}
-            title="Figma Tokens"
-            description="JSON file compatible with Tokens Studio for Figma plugin."
-            onClick={() => handleExport('figma')}
-            isExporting={exporting === 'figma'}
-            isSuccess={success === 'figma'}
-          />
-          <ExportCard 
-            icon={<FileText size={24} />}
-            title="AI Prompt (.md)"
-            description="Markdown file optimized for AI coding assistants (Cursor, v0, ChatGPT)."
-            onClick={() => handleExport('markdown')}
-            isExporting={exporting === 'markdown'}
-            isSuccess={success === 'markdown'}
-          />
-          <ExportCard 
-            icon={<Code size={24} />}
-            title="CSS Variables"
-            description="Complete CSS custom properties file. Drop into any project."
-            onClick={() => handleExport('css')}
-            isExporting={exporting === 'css'}
-            isSuccess={success === 'css'}
-          />
-          <ExportCard 
-            icon={<FileJson size={24} />}
-            title="Tailwind Config"
-            description="Ready-to-use tailwind.config.js with your entire system."
-            onClick={() => handleExport('tailwind')}
-            isExporting={exporting === 'tailwind'}
-            isSuccess={success === 'tailwind'}
-          />
-          <ExportCard 
-            icon={<FileJson size={24} />}
-            title="Raw JSON"
-            description="Complete design system data. Use in any framework or tool."
-            onClick={() => handleExport('json')}
-            isExporting={exporting === 'json'}
-            isSuccess={success === 'json'}
-          />
-          <ExportCard 
-            icon={<ImageIcon size={24} />}
-            title="Screenshot"
-            description="High-res PNG image of your entire design system."
-            onClick={() => handleExport('png')}
-            isExporting={exporting === 'png'}
-            isSuccess={success === 'png'}
-          />
+        <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar" data-lenis-prevent>
+          <div className="mb-6">
+            <h4 className="text-xs font-semibold mb-3 uppercase tracking-wider opacity-70">Select Themes to Export</h4>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(system.themes || {}).map(theme => (
+                <label key={theme} className="flex items-center gap-2 cursor-pointer bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedThemes.includes(theme)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedThemes([...selectedThemes, theme]);
+                      } else {
+                        setSelectedThemes(selectedThemes.filter(t => t !== theme));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-[var(--color-app-accent)] focus:ring-[var(--color-app-accent)]"
+                  />
+                  <span className="capitalize text-xs font-medium">{theme}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <ExportCard 
+              icon={<Copy size={18} />}
+              title="Copy to Figma"
+              description="Copies an SVG of your design system. Just paste directly into Figma!"
+              onClick={() => handleExport('figma-direct')}
+              isExporting={exporting === 'figma-direct'}
+              isSuccess={success === 'figma-direct'}
+              actionText="Copy to Clipboard"
+            />
+            <ExportCard 
+              icon={<LayoutTemplate size={18} />}
+              title="Figma Tokens"
+              description="JSON file compatible with Tokens Studio for Figma plugin."
+              onClick={() => handleExport('figma')}
+              onCopy={() => handleExport('figma', 'copy')}
+              isExporting={exporting === 'figma'}
+              isSuccess={success === 'figma'}
+              isCopied={success === 'figma-copy'}
+            />
+            <ExportCard 
+              icon={<FileText size={18} />}
+              title="AI Prompt (.md)"
+              description="Markdown file optimized for AI coding assistants (Cursor, v0, ChatGPT)."
+              onClick={() => handleExport('markdown')}
+              onCopy={() => handleExport('markdown', 'copy')}
+              isExporting={exporting === 'markdown'}
+              isSuccess={success === 'markdown'}
+              isCopied={success === 'markdown-copy'}
+            />
+            <ExportCard 
+              icon={<Code size={18} />}
+              title="CSS Variables"
+              description="Complete CSS custom properties file. Drop into any project."
+              onClick={() => handleExport('css')}
+              onCopy={() => handleExport('css', 'copy')}
+              isExporting={exporting === 'css'}
+              isSuccess={success === 'css'}
+              isCopied={success === 'css-copy'}
+            />
+            <ExportCard 
+              icon={<FileJson size={18} />}
+              title="Tailwind Config"
+              description="Ready-to-use tailwind.config.js with your entire system."
+              onClick={() => handleExport('tailwind')}
+              onCopy={() => handleExport('tailwind', 'copy')}
+              isExporting={exporting === 'tailwind'}
+              isSuccess={success === 'tailwind'}
+              isCopied={success === 'tailwind-copy'}
+            />
+            <ExportCard 
+              icon={<FileJson size={18} />}
+              title="Raw JSON"
+              description="Complete design system data. Use in any framework or tool."
+              onClick={() => handleExport('json')}
+              onCopy={() => handleExport('json', 'copy')}
+              isExporting={exporting === 'json'}
+              isSuccess={success === 'json'}
+              isCopied={success === 'json-copy'}
+            />
+            <ExportCard 
+              icon={<ImageIcon size={18} />}
+              title="Screenshot"
+              description="High-res PNG image of your entire design system."
+              onClick={() => handleExport('png')}
+              isExporting={exporting === 'png'}
+              isSuccess={success === 'png'}
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const ExportCard = ({ icon, title, description, onClick, isExporting, isSuccess, actionText }: any) => (
+const ExportCard = ({ icon, title, description, onClick, onCopy, isExporting, isSuccess, isCopied, actionText }: any) => (
   <div 
     onClick={isExporting ? undefined : onClick}
-    className={`p-6 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col h-full bg-white dark:bg-white/5 border-black/10 dark:border-white/10 hover:border-[var(--color-app-accent)] hover:shadow-md ${isExporting ? 'opacity-50 pointer-events-none' : ''}`}
+    className={`p-3 rounded-xl border transition-all duration-300 cursor-pointer flex flex-col h-full bg-white dark:bg-white/5 border-black/10 dark:border-white/10 hover:border-[var(--color-app-accent)] hover:shadow-md ${isExporting ? 'opacity-50 pointer-events-none' : ''}`}
   >
-    <div className="w-12 h-12 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center mb-4 text-[var(--color-app-accent)]">
-      {icon}
+    <div className="flex items-center gap-2 mb-1.5">
+      <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-[var(--color-app-accent)] shrink-0">
+        {icon}
+      </div>
+      <h4 className="text-sm font-semibold leading-tight">{title}</h4>
     </div>
-    <h4 className="text-lg font-semibold mb-2">{title}</h4>
-    <p className="text-sm opacity-70 flex-grow">{description}</p>
+    <p className="text-[11px] opacity-70 flex-grow mb-3 leading-relaxed">{description}</p>
     
-    <div className="mt-6 flex items-center text-sm font-medium text-[var(--color-app-accent)]">
+    <div className="mt-auto flex items-center text-[11px] font-medium text-[var(--color-app-accent)]">
       {isExporting ? (
-        <>
-          <div className="w-4 h-4 border-2 border-[var(--color-app-accent)]/30 border-t-[var(--color-app-accent)] rounded-full animate-spin mr-2"></div>
+        <div className="flex items-center">
+          <div className="w-3 h-3 border-2 border-[var(--color-app-accent)]/30 border-t-[var(--color-app-accent)] rounded-full animate-spin mr-2"></div>
           Exporting...
-        </>
-      ) : isSuccess ? (
+        </div>
+      ) : isSuccess || isCopied ? (
         <span className="text-green-500 flex items-center">
-          <Check size={16} className="mr-1" /> {actionText === 'Copy to Clipboard' ? 'Copied!' : 'Exported!'}
+          <Check size={14} className="mr-1" /> {isCopied || actionText === 'Copy to Clipboard' ? 'Copied!' : 'Exported!'}
         </span>
       ) : (
-        <span className="flex items-center group-hover:translate-x-1 transition-transform">
-          {actionText || 'Download'} {actionText === 'Copy to Clipboard' ? <Copy size={14} className="ml-1" /> : <Download size={14} className="ml-1" />}
-        </span>
+        <div className="flex items-center justify-between w-full">
+          <span className="flex items-center group-hover:translate-x-1 transition-transform">
+            {actionText || 'Download'} {actionText === 'Copy to Clipboard' ? <Copy size={12} className="ml-1" /> : <Download size={12} className="ml-1" />}
+          </span>
+          {onCopy && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onCopy(); }}
+              className="flex items-center hover:opacity-70 transition-opacity px-2.5 py-1.5 rounded-md bg-[var(--color-app-accent)]/10"
+            >
+              Copy <Copy size={12} className="ml-1" />
+            </button>
+          )}
+        </div>
       )}
     </div>
   </div>
@@ -420,6 +491,47 @@ function generateFigmaSVG(system: DesignSystem): string {
   }
   defs += '</defs>';
   
+  // Components Section
+  svg += `<text x="100" y="${yOffset}" font-family="${system.typography?.displayFont?.name || 'sans-serif'}" font-size="32" font-weight="bold" fill="#111827">Components</text>`;
+  yOffset += 60;
+
+  const primaryColor = getSolidColorFallback(system.colors?.primary?.hex || '#000000');
+  const secondaryColor = getSolidColorFallback(system.colors?.secondary?.hex || '#666666');
+  const fontName = system.typography?.bodyFont?.name || 'sans-serif';
+  const borderRadiusObj = system.borderRadius?.scale?.find(r => r.name === 'md') || system.borderRadius?.scale?.[0];
+  const borderRadius = borderRadiusObj ? parseDimension(borderRadiusObj.value) : 8;
+  
+  // Primary Button
+  svg += `<rect x="100" y="${yOffset}" width="160" height="48" rx="${borderRadius}" fill="${primaryColor}"/>`;
+  svg += `<text x="180" y="${yOffset + 29}" font-family="${fontName}" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Primary Button</text>`;
+  
+  // Secondary Button
+  svg += `<rect x="280" y="${yOffset}" width="180" height="48" rx="${borderRadius}" fill="transparent" stroke="${secondaryColor}" stroke-width="2"/>`;
+  svg += `<text x="370" y="${yOffset + 29}" font-family="${fontName}" font-size="16" font-weight="600" fill="${secondaryColor}" text-anchor="middle">Secondary Button</text>`;
+
+  yOffset += 80;
+
+  // Input Field
+  svg += `<rect x="100" y="${yOffset}" width="360" height="48" rx="${borderRadius}" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>`;
+  svg += `<text x="116" y="${yOffset + 29}" font-family="${fontName}" font-size="16" fill="#9CA3AF">Enter text here...</text>`;
+
+  yOffset += 80;
+
+  // Card
+  const shadowFilter = system.shadows?.scale?.length ? 'filter="url(#shadow-0)"' : '';
+  svg += `<rect x="100" y="${yOffset}" width="360" height="200" rx="${borderRadius * 1.5}" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1" ${shadowFilter}/>`;
+  svg += `<text x="124" y="${yOffset + 40}" font-family="${system.typography?.displayFont?.name || 'sans-serif'}" font-size="24" font-weight="bold" fill="#111827">Card Title</text>`;
+  
+  // Multiline text for card body
+  svg += `<text x="124" y="${yOffset + 70}" font-family="${fontName}" font-size="16" fill="#4B5563">This is a sample card component using</text>`;
+  svg += `<text x="124" y="${yOffset + 94}" font-family="${fontName}" font-size="16" fill="#4B5563">your design system tokens. It includes</text>`;
+  svg += `<text x="124" y="${yOffset + 118}" font-family="${fontName}" font-size="16" fill="#4B5563">typography, colors, and spacing.</text>`;
+  
+  svg += `<rect x="124" y="${yOffset + 140}" width="120" height="40" rx="${borderRadius}" fill="${primaryColor}"/>`;
+  svg += `<text x="184" y="${yOffset + 165}" font-family="${fontName}" font-size="14" font-weight="600" fill="#FFFFFF" text-anchor="middle">Action</text>`;
+
+  yOffset += 260;
+
   // Update viewBox height
   svg = svg.replace('height="5000" viewBox="0 0 1200 5000"', `height="${yOffset + 100}" viewBox="0 0 1200 ${yOffset + 100}"`);
   svg = svg.replace('<rect width="1200" height="5000" fill="#F9FAFB"/>', `<rect width="1200" height="${yOffset + 100}" fill="#F9FAFB"/>`);

@@ -77,9 +77,10 @@ export const FontDropdown: React.FC<FontDropdownProps> = ({ value, onChange, the
                   }}
                   className="w-full text-left px-3 py-2 text-sm rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                   style={{ 
-                    color: font === value ? theme.primary : theme.textPrimary,
+                    color: theme.textPrimary,
                     fontFamily: `"${font}", sans-serif`,
-                    fontWeight: font === value ? 600 : 400
+                    fontWeight: font === value ? 600 : 400,
+                    background: font === value ? 'rgba(128, 128, 128, 0.1)' : 'transparent'
                   }}
                 >
                   {font}
