@@ -31,6 +31,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check source integrity before execution
+        run: node "${{ github.workspace }}/scripts/check-source-integrity.mjs"
+        working-directory: ${{ github.workspace }}
+        env:
+          NODE_OPTIONS: ''
+          NODE_PATH: ''
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
